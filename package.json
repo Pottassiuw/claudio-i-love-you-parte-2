@@ -1,0 +1,12 @@
+{
+  "name": "atividade02-controle-producao",
+  "version": "1.0.0",
+  "description": "API REST - Sistema de Controle de Producao com Estoque e Relatorios",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
