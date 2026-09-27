@@ -88,7 +88,7 @@ function validarCampos(dados) {
 }
 
 app.post('/ordens', (req, res) => {
-  const dados = req.body;
+  const dados = req.body || {};
 
   const erros = validarCampos(dados);
   if (erros.length > 0) {
@@ -148,7 +148,7 @@ app.put('/ordens/:codigoOrdem', (req, res) => {
   }
 
   const atual = ordens[indice];
-  const dados = req.body;
+  const dados = req.body || {};
 
   const atualizada = {
     codigoOrdem: atual.codigoOrdem,
@@ -245,6 +245,17 @@ app.get('/relatorios/ordens', (req, res) => {
     quantidadeAlertas,
     porProduto,
   });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ erro: `Rota '${req.method} ${req.originalUrl}' nao encontrada` });
+});
+
+app.use((err, req, res, next) => {
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ erro: 'JSON invalido no corpo da requisicao' });
+  }
+  return res.status(500).json({ erro: 'Erro interno do servidor' });
 });
 
 const PORTA = process.env.PORT || 3000;

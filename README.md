@@ -1,38 +1,47 @@
-# Atividade Avaliativa Individual 02 — API REST: Controle de Produção
+# API REST - Controle de Produção
 
-API REST em Node.js + Express para gerenciar ordens de produção de uma indústria de peças automotivas, com controle de estoque e relatórios consolidados. Armazenamento em memória (array).
+API em Node.js + Express para controle de ordens de produção, estoque e relatórios.
+Os dados ficam em memória (um array), então são perdidos quando o servidor reinicia.
 
-## Como rodar
+## Como executar
 
-```bash
+```
 npm install
 npm start
 ```
 
-Servidor sobe em `http://localhost:3000`.
+O servidor sobe em http://localhost:3000.
 
 ## Endpoints
 
-| Método | Rota | Descrição |
-|---|---|---|
-| POST | `/ordens` | Cadastra uma ordem (valida campos, duplicidade e tipoProduto 1–3). Retorna 201 com todos os campos calculados. |
-| GET | `/ordens` | Lista todas as ordens. Filtros opcionais: `?tipo=2`, `?alerta=ALTO`. |
-| GET | `/ordens/:codigoOrdem` | Retorna uma ordem específica. 404 se não existir. |
-| PUT | `/ordens/:codigoOrdem` | Atualiza campos permitidos e recalcula tudo. 404 se não existir. |
-| DELETE | `/ordens/:codigoOrdem` | Remove a ordem. Relatórios deixam de considerá-la. |
-| GET | `/relatorios/ordens` | Relatório consolidado (total, estoque por tipo, média de custo, ordem mais cara/barata, alertas e consolidação por produto). |
+**POST /ordens**
+Cadastra uma ordem. O corpo em JSON precisa ter: codigoOrdem, codigoProduto, tipoProduto, quantidadeProduzida, custoUnitarioBase, estoqueInicial.
+Retorna 201 com a ordem e os campos calculados. Retorna 400 se faltar campo, se o tipoProduto não for 1, 2 ou 3, ou se o codigoOrdem já existir.
+
+**GET /ordens**
+Lista todas as ordens. Aceita filtros opcionais: `?tipo=2` e `?alerta=ALTO`.
+
+**GET /ordens/:codigoOrdem**
+Retorna uma ordem pelo código. Retorna 404 se não existir.
+
+**PUT /ordens/:codigoOrdem**
+Atualiza os campos permitidos (codigoProduto, tipoProduto, quantidadeProduzida, custoUnitarioBase, estoqueInicial) e recalcula estoqueFinal, custoUnitarioAjustado, custoTotal e alertaEstoque. Retorna 404 se não existir.
+
+**DELETE /ordens/:codigoOrdem**
+Remove a ordem. Retorna 404 se não existir.
+
+**GET /relatorios/ordens**
+Relatório consolidado com: totalOrdens, estoquePorTipo, mediaCustoTotalPorOrdem, ordemMaisCara, ordemMaisBarata, quantidadeAlertas e porProduto.
 
 ## Regras de negócio
 
-- `estoqueFinal = estoqueInicial + quantidadeProduzida`
-- `custoUnitarioAjustado`: tipo 1 = base · tipo 2 = +10% · tipo 3 = +20%
-- `custoTotal = quantidadeProduzida * custoUnitarioAjustado`
-- `alertaEstoque`: `> 5000` → ALTO · `< 500` → CRITICO · senão NORMAL
+- estoqueFinal = estoqueInicial + quantidadeProduzida
+- custoUnitarioAjustado: tipo 1 = custo base; tipo 2 = base + 10%; tipo 3 = base + 20%
+- custoTotal = quantidadeProduzida * custoUnitarioAjustado
+- alertaEstoque: estoqueFinal maior que 5000 = ALTO; menor que 500 = CRITICO; senão NORMAL
 
 ## Exemplo de requisição
 
-```bash
-curl -X POST http://localhost:3000/ordens \
-  -H "Content-Type: application/json" \
-  -d '{"codigoOrdem":"OP123","codigoProduto":"P1","tipoProduto":2,"quantidadeProduzida":1000,"custoUnitarioBase":20,"estoqueInicial":300}'
+```
+curl -X POST http://localhost:3000/ordens -H "Content-Type: application/json" -d "{\"codigoOrdem\":\"OP123\",\"codigoProduto\":\"P1\",\"tipoProduto\":2,\"quantidadeProduzida\":1000,\"custoUnitarioBase\":20,\"estoqueInicial\":300}"
 ```
